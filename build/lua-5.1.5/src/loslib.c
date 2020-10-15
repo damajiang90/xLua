@@ -171,6 +171,28 @@ static int os_date (lua_State *L) {
 }
 
 
+static int os_filldate (lua_State *L) {
+  time_t t = luaL_opt(L, (time_t)luaL_checknumber, 2, time(NULL));
+  struct tm *stm;
+  stm = gmtime(&t);
+  if (stm == NULL)  /* invalid date? */
+    return luaL_error(L,
+                 "time result cannot be represented in this installation");
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_settop(L, 1);  /* make sure table is at the top */
+  setfield(L, "sec", stm->tm_sec);
+  setfield(L, "min", stm->tm_min);
+  setfield(L, "hour", stm->tm_hour);
+  setfield(L, "day", stm->tm_mday);
+  setfield(L, "month", stm->tm_mon+1);
+  setfield(L, "year", stm->tm_year+1900);
+  setfield(L, "wday", stm->tm_wday+1);
+  setfield(L, "yday", stm->tm_yday+1);
+  setboolfield(L, "isdst", stm->tm_isdst);
+  return 0;
+}
+
+
 static int os_time (lua_State *L) {
   time_t t;
   if (lua_isnoneornil(L, 1))  /* called without args? */
@@ -224,6 +246,7 @@ static int os_exit (lua_State *L) {
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
+  {"filldate",      os_filldate},
   {"difftime",  os_difftime},
   //{"execute",   os_execute},
   {"exit",      os_exit},

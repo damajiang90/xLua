@@ -226,6 +226,35 @@ LJLIB_CF(os_date)
   return 1;
 }
 
+LJLIB_CF(os_filldate)
+{
+  time_t t = luaL_opt(L, (time_t)luaL_checknumber, 2, time(NULL));
+  struct tm *stm;
+#if LJ_TARGET_POSIX
+  struct tm rtm;
+#endif
+#if LJ_TARGET_POSIX
+    stm = gmtime_r(&t, &rtm);
+#else
+    stm = gmtime(&t);
+#endif
+  if (stm == NULL)  /* Invalid date? */
+    return luaL_error(L,
+                 "time result cannot be represented in this installation");
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_settop(L, 1);  /* make sure table is at the top */
+  setfield(L, "sec", stm->tm_sec);
+  setfield(L, "min", stm->tm_min);
+  setfield(L, "hour", stm->tm_hour);
+  setfield(L, "day", stm->tm_mday);
+  setfield(L, "month", stm->tm_mon+1);
+  setfield(L, "year", stm->tm_year+1900);
+  setfield(L, "wday", stm->tm_wday+1);
+  setfield(L, "yday", stm->tm_yday+1);
+  setboolfield(L, "isdst", stm->tm_isdst);
+  return 0;
+}
+
 LJLIB_CF(os_time)
 {
   time_t t;
